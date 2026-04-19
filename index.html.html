@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STTM Builder | McKinsol · Project Skyline</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:       #0F1923;
+    --ink2:      #2C3E50;
+    --slate:     #4A5568;
+    --rule:      #CBD5E0;
+    --surface:   #F7F9FC;
+    --white:     #FFFFFF;
+    --blue:      #1E4D8C;
+    --blue-lt:   #EBF2FB;
+    --teal:      #0E7490;
+    --teal-lt:   #E0F5F9;
+    --gold:      #B7791F;
+    --gold-lt:   #FEF3C7;
+    --green:     #276749;
+    --green-lt:  #E6F4ED;
+    --red:       #9B2335;
+    --red-lt:    #FDE8EB;
+    --radius:    6px;
+    --shadow:    0 2px 12px rgba(15,25,35,.08);
+    --shadow-lg: 0 8px 40px rgba(15,25,35,.13);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #EEF2F7;
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    padding: 0 40px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -.3px;
+  }
+  .header-sep { width: 1px; height: 20px; background: rgba(255,255,255,.2); }
+  .header-project {
+    font-size: 12px;
+    color: rgba(255,255,255,.55);
+    font-weight: 300;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
+  .header-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.1);
+    color: rgba(255,255,255,.7);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── PAGE TITLE ── */
+  .page-title {
+    margin-bottom: 32px;
+  }
+  .page-title h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -.5px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .page-title p {
+    font-size: 14px;
+    color: var(--slate);
+    font-weight: 300;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+  }
+  .card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .card-icon.blue  { background: var(--blue-lt);  color: var(--blue);  }
+  .card-icon.teal  { background: var(--teal-lt);  color: var(--teal);  }
+  .card-icon.gold  { background: var(--gold-lt);  color: var(--gold);  }
+  .card-icon.green { background: var(--green-lt); color: var(--green); }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: .1px;
+  }
+  .card-subtitle {
+    font-size: 12px;
+    color: var(--slate);
+    font-weight: 300;
+    margin-left: auto;
+  }
+  .card-body { padding: 24px; }
+
+  /* ── FORM GRID ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid .span2 { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink2);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+  .field label .req { color: var(--red); margin-left: 2px; }
+  .field label .hint {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--slate);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 6px;
+  }
+  .field input, .field select, .field textarea {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30,77,140,.1);
+    background: var(--white);
+  }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field .mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  /* ── API KEY FIELD ── */
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .api-row input { flex: 1; font-family: 'DM Mono', monospace; font-size: 12px; }
+  .btn-sm {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--rule);
+    background: var(--white);
+    color: var(--ink2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .btn-sm:hover { background: var(--surface); border-color: var(--blue); color: var(--blue); }
+
+  /* ── FILE UPLOAD ── */
+  .upload-zone {
+    border: 2px dashed var(--rule);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--surface);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--teal);
+    background: var(--teal-lt);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 24px; margin-bottom: 8px; }
+  .upload-label { font-size: 13px; color: var(--slate); }
+  .upload-label strong { color: var(--teal); }
+  .upload-meta { font-size: 11px; color: var(--slate); margin-top: 4px; }
+  .upload-file-name {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--green-lt);
+    border-radius: var(--radius);
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .upload-file-name.show { display: flex; }
+  .upload-clear {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--green);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+  }
+
+  /* ── WORKSTREAM PILLS ── */
+  .ws-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ws-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--rule);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--slate);
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--white);
+    user-select: none;
+  }
+  .ws-pill:hover { border-color: var(--blue); color: var(--blue); }
+  .ws-pill.active { background: var(--blue); border-color: var(--blue); color: var(--white); }
+  .ws-pill input { display: none; }
+
+  /* ── GENERATE BUTTON ── */
+  .generate-btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--white);
+    background: var(--blue);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: -.2px;
+    box-shadow: 0 4px 16px rgba(30,77,140,.25);
+  }
+  .generate-btn:hover:not(:disabled) {
+    background: #163d70;
+    box-shadow: 0 6px 24px rgba(30,77,140,.35);
+    transform: translateY(-1px);
+  }
+  .generate-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-panel {
+    display: none;
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .progress-panel.show { display: block; }
+  .progress-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-title .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid var(--rule);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sheet-list { display: flex; flex-direction: column; gap: 8px; }
+  .sheet-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid transparent;
+    transition: all .2s;
+  }
+  .sheet-row.active { background: var(--blue-lt); border-color: rgba(30,77,140,.2); }
+  .sheet-row.done   { background: var(--green-lt); border-color: rgba(39,103,73,.2); }
+  .sheet-row.error  { background: var(--red-lt); border-color: rgba(155,35,53,.2); }
+
+  .sheet-status {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .sheet-status.pending { background: var(--rule); color: var(--slate); }
+  .sheet-status.active  {
+    background: var(--blue);
+    border: 2px solid transparent;
+    animation: pulse-blue .8s ease-in-out infinite alternate;
+  }
+  @keyframes pulse-blue { from { box-shadow: 0 0 0 0 rgba(30,77,140,.4); } to { box-shadow: 0 0 0 6px rgba(30,77,140,0); } }
+  .sheet-status.done  { background: var(--green); color: white; }
+  .sheet-status.error { background: var(--red);   color: white; }
+
+  .sheet-name { font-size: 13px; font-weight: 500; color: var(--ink2); }
+  .sheet-msg  { font-size: 11px; color: var(--slate); margin-left: auto; font-style: italic; }
+
+  .progress-bar-wrap {
+    margin-top: 20px;
+    background: var(--rule);
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--teal));
+    border-radius: 4px;
+    transition: width .4s ease;
+    width: 0%;
+  }
+
+  /* ── SUCCESS PANEL ── */
+  .success-panel {
+    display: none;
+    background: var(--white);
+    border-radius: 10px;
+    border: 2px solid var(--green);
+    box-shadow: var(--shadow);
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .success-panel.show { display: block; }
+  .success-icon { font-size: 40px; margin-bottom: 12px; }
+  .success-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+  .success-sub { font-size: 13px; color: var(--slate); margin-bottom: 24px; }
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .15s;
+  }
+  .download-btn:hover { background: #1a5235; }
+
+  /* ── ERROR PANEL ── */
+  .error-panel {
+    display: none;
+    background: var(--red-lt);
+    border: 1px solid rgba(155,35,53,.3);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--red);
+  }
+  .error-panel.show { display: block; }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .info-box.blue  { background: var(--blue-lt);  color: var(--blue);  border-left: 3px solid var(--blue);  }
+  .info-box.gold  { background: var(--gold-lt);  color: var(--gold);  border-left: 3px solid var(--gold);  }
+  .info-box.teal  { background: var(--teal-lt);  color: var(--teal);  border-left: 3px solid var(--teal);  }
+  .info-box-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--slate);
+    padding: 20px;
+    border-top: 1px solid var(--rule);
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <span class="header-logo">McKinsol</span>
+    <div class="header-sep"></div>
+    <span class="header-project">GAF · Project Skyline</span>
+  </div>
+  <span class="header-badge">STTM Builder v1.0</span>
+</header>
+
+<div class="layout">
+
+  <div class="page-title">
+    <h1>STTM Builder</h1>
+    <p>Generate a complete Source-to-Target Mapping workbook for any conversion object. One object per run.</p>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-panel" id="errorPanel"></div>
+
+  <!-- PROGRESS -->
+  <div class="progress-panel" id="progressPanel">
+    <div class="progress-title">
+      <div class="spinner" id="progressSpinner"></div>
+      <span id="progressTitle">Generating STTM...</span>
+    </div>
+    <div class="sheet-list" id="sheetList"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-panel" id="successPanel">
+    <div class="success-icon">✓</div>
+    <div class="success-title">STTM Generated Successfully</div>
+    <div class="success-sub" id="successSub"></div>
+    <button class="download-btn" id="downloadBtn">⬇ Download Excel File</button>
+    <p style="margin-top:16px;font-size:12px;color:var(--slate)">Pass 1 complete. Upload this file to Claude for Pass 2 formatting.</p>
+  </div>
+
+  <!-- ── CARD 1: API KEY ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">🔑</div>
+      <span class="card-title">API Configuration</span>
+      <span class="card-subtitle">Required once per session</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Anthropic API Key <span class="req">*</span> <span class="hint">Starts with sk-ant- · Not stored, session only</span></label>
+        <div class="api-row">
+          <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" />
+          <button class="btn-sm" onclick="toggleApiKey()">Show</button>
+          <button class="btn-sm" onclick="testApiKey()">Test</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="info-box gold">
+          <span class="info-box-icon">ℹ</span>
+          <span>Get your key at <strong>console.anthropic.com</strong> → API Keys → Create Key. The key is never saved or sent anywhere except directly to the Anthropic API.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CARD 2: OBJECT DETAILS ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon teal">📋</div>
+      <span class="card-title">Conversion Object Details</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+
+        <div class="field">
+          <label>ctrl_standard Object Name <span class="req">*</span> <span class="hint">lowercase_underscores</span></label>
+          <input class="mono" type="text" id="objName" placeholder="vendor_master" />
+        </div>
+
+        <div class="field">
+          <label>Object Code <span class="req">*</span> <span class="hint">4-char uppercase</span></label>
+          <input class="mono" type="text" id="objCode" placeholder="VEND" maxlength="4"
+            oninput="this.value=this.value.toUpperCase()" />
+        </div>
+
+        <div class="field">
+          <label>PascalCase Name <span class="req">*</span> <span class="hint">For filename · NoSpaces</span></label>
+          <input class="mono" type="text" id="objPascal" placeholder="VendorMaster" />
+        </div>
+
+        <div class="field">
+          <label>Workstream <span class="req">*</span></label>
+          <div class="ws-pills" id="wsPills">
+            <label class="ws-pill" onclick="selectWs(this, 'D2I - Design to Inventory')"><input type="radio" name="ws">D2I</label>
+            <label class="ws-pill" onclick="selectWs(this, 'O2C - Order to Cash')"><input type="radio" name="ws">O2C</label>
+            <label class="ws-pill" onclick="selectWs(this, 'S2P - Source to Pay')"><input type="radio" name="ws">S2P</label>
+            <label class="ws-pill" onclick="selectWs(this, 'R2R - Record to Report')"><input type="radio" name="ws">R2R</label>
+            <label class="ws-pill" onclick="selectWs(this, 'M2D - Make to Deliver')"><input type="radio" name="ws">M2D</label>
+            <label class="ws-pill" onclick="selectWs(this, 'P2M - Plan to Manufacture')"><input type="radio" name="ws">P2M</label>
+          </div>
+          <input type="hidden" id="workstream" />
+        </div>
+
+        <div class="field">
+          <label>SAP MYO Object Name <span class="req">*</span></label>
+          <input class="mono" type="text" id="myoName" placeholder="VendorMaster_MYO" />
+        </div>
+
+        <div class="field">
+          <label>OData Service <span class="req">*</span></label>
+          <input class="mono" type="text" id="odataService" placeholder="API_BUSINESS_PARTNER" />
+        </div>
+
+        <div class="field span2">
+          <label>SAP Target Tables <span class="req">*</span> <span class="hint">Comma-separated</span></label>
+          <input class="mono" type="text" id="sapTables" placeholder="LFA1, LFB1, LFBK, LFM1, ADRC, ADR6" />
+        </div>
+
+        <div class="field span2">
+          <label>PeopleSoft Primary Source Tables <span class="req">*</span> <span class="hint">Comma-separated</span></label>
+          <input class="mono" type="text" id="psTables" placeholder="VENDOR, VNDR_ADDR_SCROL, VNDR_CNTCT" />
+        </div>
+
+        <div class="field">
+          <label>Planned Wave <span class="req">*</span></label>
+          <input type="text" id="wave" placeholder="Wave 1  |  May 2027" />
+        </div>
+
+        <div class="field">
+          <label>Estimated Record Count</label>
+          <input type="text" id="recCount" placeholder="12,000" />
+        </div>
+
+        <div class="field span2">
+          <label>Functional Owner <span class="hint">Value stream lead or TBD</span></label>
+          <input type="text" id="funcOwner" placeholder="TBD – S2P Value Stream Lead" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CARD 3: DELOITTE FILE ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon gold">📎</div>
+      <span class="card-title">Deloitte Source Mapping</span>
+      <span class="card-subtitle">Optional · Upload if available</span>
+    </div>
+    <div class="card-body">
+      <div class="info-box teal" style="margin-bottom:16px">
+        <span class="info-box-icon">ℹ</span>
+        <span>Check Section 2 of the Build Instructions. If a Deloitte STTM exists for this object, download it from Google Drive as Excel (File → Download → Microsoft Excel) and upload it here. If not, leave this empty and the app builds from scratch.</span>
+      </div>
+      <div class="upload-zone" id="uploadZone"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" id="deloitteFile" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)" />
+        <div class="upload-icon">📊</div>
+        <div class="upload-label"><strong>Click to upload</strong> or drag and drop</div>
+        <div class="upload-meta">Deloitte STTM Excel file · .xlsx or .xls</div>
+      </div>
+      <div class="upload-file-name" id="uploadFileName">
+        <span>📄</span>
+        <span id="uploadFileNameText"></span>
+        <button class="upload-clear" onclick="clearFile()" title="Remove file">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GENERATE ── -->
+  <button class="generate-btn" id="generateBtn" onclick="generateSTTM()">
+    <span>⚡</span>
+    <span>Generate STTM</span>
+  </button>
+
+  <div class="info-box blue" style="margin-top:12px">
+    <span class="info-box-icon">⏱</span>
+    <span>Generation takes <strong>3–6 minutes</strong> depending on object complexity. Each of the 7 sheets is built sequentially. Do not close this tab while running.</span>
+  </div>
+
+</div>
+
+<footer class="footer">
+  McKinsol Consulting Inc. · GAF Project Skyline · STTM Builder v1.0 · For internal use only
+</footer>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let selectedWorkstream = '';
+let deloitteFileContent = null;
+let deloitteFileName = '';
+let generatedWorkbook = null;
+
+// ─── WORKSTREAM PILLS ─────────────────────────────────────────────────────────
+function selectWs(el, val) {
+  document.querySelectorAll('.ws-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  selectedWorkstream = val;
+  document.getElementById('workstream').value = val;
+}
+
+// ─── API KEY TOGGLE ───────────────────────────────────────────────────────────
+function toggleApiKey() {
+  const inp = document.getElementById('apiKey');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function testApiKey() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { showError('Please enter an API key first.'); return; }
+  try {
+    const r = await callClaude(key, 'Say exactly: API_KEY_VALID', 20);
+    if (r.includes('API_KEY_VALID')) {
+      showError(''); alert('✓ API key is valid and working.');
+    }
+  } catch(e) {
+    showError('API key test failed: ' + e.message);
+  }
+}
+
+// ─── FILE HANDLING ────────────────────────────────────────────────────────────
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag-over'); }
+function handleDragLeave(e) { document.getElementById('uploadZone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFileSelect(e) { const file = e.target.files[0]; if (file) processFile(file); }
+
+function processFile(file) {
+  deloitteFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      let text = '';
+      wb.SheetNames.forEach(name => {
+        const ws = wb.Sheets[name];
+        const csv = XLSX.utils.sheet_to_csv(ws);
+        if (csv.trim().length > 10) {
+          text += `\n=== SHEET: ${name} ===\n${csv.substring(0, 8000)}\n`;
+        }
+      });
+      deloitteFileContent = text.substring(0, 40000);
+      document.getElementById('uploadFileNameText').textContent = file.name;
+      document.getElementById('uploadFileName').classList.add('show');
+    } catch(err) {
+      showError('Could not read file: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function clearFile() {
+  deloitteFileContent = null;
+  deloitteFileName = '';
+  document.getElementById('deloitteFile').value = '';
+  document.getElementById('uploadFileName').classList.remove('show');
+}
+
+// ─── API CALL ─────────────────────────────────────────────────────────────────
+async function callClaude(apiKey, prompt, maxTokens = 4000) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${response.status}`);
+  }
+  const data = await response.json();
+  return data.content[0].text;
+}
+
+// ─── VALIDATION ───────────────────────────────────────────────────────────────
+function validate() {
+  const fields = [
+    ['apiKey',      'API Key'],
+    ['objName',     'ctrl_standard Object Name'],
+    ['objCode',     'Object Code'],
+    ['objPascal',   'PascalCase Name'],
+    ['myoName',     'SAP MYO Name'],
+    ['odataService','OData Service'],
+    ['sapTables',   'SAP Target Tables'],
+    ['psTables',    'PeopleSoft Source Tables'],
+    ['wave',        'Planned Wave'],
+  ];
+  for (const [id, label] of fields) {
+    if (!document.getElementById(id).value.trim()) {
+      showError(`Required field missing: ${label}`);
+      document.getElementById(id).focus();
+      return false;
+    }
+  }
+  if (!selectedWorkstream) { showError('Please select a Workstream.'); return false; }
+  return true;
+}
+
+// ─── CONTEXT BLOCK ────────────────────────────────────────────────────────────
+function buildContext(fields) {
+  return `=== PROJECT SKYLINE STTM CONTEXT ===
+Project: GAF (Standard Industries) - Project Skyline
+Implementation: Greenfield SAP S/4HANA 2025 RISE Private Cloud Edition
+SI Partner: IBM (lead SI) / McKinsol Consulting (data migration)
+Migration Tool: iMigrate Pro (NeuVays) on SAP BTP
+Migration Database: PostgreSQL (Azure-hosted, Dev/QA/Prod)
+Source System: PeopleSoft FSCM 9.2 on Microsoft SQL Server
+Target System: SAP S/4HANA 2025 (OData API load via iMigrate Pro)
+Wave Schedule: 5 waves, Wave 1 May 2027 through Wave 5 May 2028
+Migration Lead: Simon Ingham (McKinsol)
+
+--- THIS OBJECT ---
+ctrl_standard Name: ${fields.objName}
+Object Code: ${fields.objCode}
+Workstream: ${fields.workstream}
+SAP MYO Name: ${fields.myoName}
+SAP Target Tables: ${fields.sapTables}
+OData Service: ${fields.odataService}
+PS Primary Tables: ${fields.psTables}
+Planned Wave: ${fields.wave}
+Estimated Record Count: ${fields.recCount || 'TBD'}
+Functional Owner: ${fields.funcOwner || 'TBD – ' + fields.workstream.split(' ')[0] + ' Value Stream Lead'}
+
+--- POSTGRESQL NAMING STANDARD ---
+bronze.${fields.objName}
+silver.v_${fields.objName}__silver
+gold.v_${fields.objName}__load
+rel.${fields.objName}_relevancy
+construct.${fields.objName}_corrections
+construct.${fields.objName}_constructed
+qc.${fields.objName}__errors
+
+--- MAPPING TYPE VOCABULARY (use only these) ---
+As Is | Default | System Default | Cross Reference | Business Rules | Data Enrichment | Not Used
+
+--- CONFIDENCE VOCABULARY ---
+HIGH | MEDIUM | LOW | GAP
+
+--- FIT-TO-STANDARD STATUS ---
+OK | REVIEW | CRITICAL
+
+--- RULE ID FORMAT ---
+R-${fields.objCode}-0010, R-${fields.objCode}-0020 ... (sequential, increment by 10)
+=== END CONTEXT ===`;
+}
+
+// ─── SHEET PROMPTS ────────────────────────────────────────────────────────────
+function buildDeloitteBlock(fields) {
+  if (!deloitteFileContent) return '';
+  return `\n\n=== DELOITTE SOURCE STTM (${deloitteFileName}) ===
+Use this as your primary source for field mappings, transformation rules, and cross-reference domains.
+Extract all PS source tables, SAP target fields, mapping types, transformation rules, xRef domains, and open items from this content.
+${deloitteFileContent}
+=== END DELOITTE SOURCE ===`;
+}
+
+const SHEETS = [
+  { key: 'cover',      label: 'Cover',                  msg: 'Project metadata...' },
+  { key: 'objsum',     label: 'Object Summary',          msg: 'Source tables, volumes, DB objects...' },
+  { key: 'pssource',   label: 'PS Source Tables',        msg: 'PeopleSoft fields and FKs...' },
+  { key: 'fieldmap',   label: 'Field Mapping',           msg: 'Core mapping grid (largest sheet)...' },
+  { key: 'cde',        label: 'CDE & FTS Gap Review',    msg: 'Fit-to-Standard gaps...' },
+  { key: 'gap',        label: 'Gap Analysis',            msg: 'Open items log...' },
+  { key: 'xref',       label: 'XREF Sheets',             msg: 'Cross-reference tables...' },
+];
+
+function sheetPrompt(key, ctx, deloitte) {
+  const base = ctx + deloitte;
+  const f = getFields();
+  switch(key) {
+    case 'cover':
+      return `${base}
+
+Generate the Cover sheet data for this STTM as a JSON array of [label, value] pairs. Include:
+Project Name, Client, SI Partner, Source System, Target System, Conversion Object (ctrl_standard), Object Code, Workstream, Wave/Mock, ADMM Phase (Mapping & Design), Delivery Tool (iMigrate Pro | PostgreSQL), Migration Lead (Simon Ingham / McKinsol), Functional Owner, Status (DRAFT – In Progress), Version (1.0), Last Updated (today), Created By (McKinsol / Kranthi).
+Also include a version_history array: [{version, date, author, description}] with one entry for v1.0.
+Respond ONLY with valid JSON in this exact format:
+{"fields": [["label","value"]], "version_history": [{"version":"1.0","date":"2026-04-19","author":"McKinsol / Kranthi","description":"Initial template"}]}`;
+
+    case 'objsum':
+      return `${base}
+
+Generate the Object Summary sheet data as JSON. Include all five sections:
+1. identity: {name, code, workstream, myo_name, target_tables, odata_service}
+2. source_system: {system, db_platform, primary_tables: [], related_tables: [], config_tables: [], setid_scoped}
+3. volume_scope: {estimated_records, relevancy_filter, date_filter}
+4. postgres_objects: {bronze, silver, gold, relevancy, corrections, constructed, qc_errors, src_tables: []}
+5. xref_tables: [{domain, db_object, sheet_name}] - list every xRef domain needed based on the object
+6. script_params: {source_tag, wave, mock_cycle, batch_size, rule_runner_call}
+Respond ONLY with valid JSON. No preamble, no markdown.`;
+
+    case 'pssource':
+      return `${base}
+
+Generate PS Source Tables sheet data as JSON. For every PeopleSoft source table relevant to ${f.objName}:
+- table_name, category (PRIMARY/RELATED/CONFIG), description, primary_key, setid_scoped (Y/N)
+- fields: [{field_name, data_type, length, description, fk_table, fk_note, extract_guidance}]
+- fk_tables: [{table_name, category, join_condition, description, fields:[{field_name, data_type, length, description}]}]
+Use your knowledge of PeopleSoft FSCM 9.2. If Deloitte source is provided, use its tables as the basis.
+Respond ONLY with valid JSON: {"tables": [...]}`;
+
+    case 'fieldmap':
+      return `${base}
+
+Generate the Field Mapping sheet as JSON. This is the most important sheet. For every SAP target field for ${f.objName}:
+Include ALL fields across ALL SAP views/sections. Group by SAP section with section_header rows.
+Each row: {seq_id, sap_table, tech_name, desc_name, data_type, length, key_field, required, view_group, cde_flag, fts_status, ps_table, ps_field_tech, ps_field_desc, ps_type, ps_length, fk_table, mapping_type, confidence, in_scope, mapped, xref_reqd, xref_object, rule_id, cleansing_rule, bronze_col, build_status, notes}
+Section headers: {is_header: true, section_name: "GENERAL DATA – Name & Search"}
+Rule IDs: R-${f.objCode}-0010 incrementing by 10. Mark CRITICAL any SAP mandatory field not in scope.
+Respond ONLY with valid JSON: {"rows": [...]}`;
+
+    case 'cde':
+      return `${base}
+
+Generate the CDE & FTS Gap Review sheet as JSON. Extract all fields where cde_flag=Y from the field mapping.
+Classify as CRITICAL (SAP mandatory, not in scope - failure risk), REVIEW (scope decision needed), or OK (correctly handled).
+Each row: {priority, sap_table_field, tech_name, description, view_area, sap_mandatory, in_scope, cde_rationale, recommendation, owner, decision}
+Priorities: CRITICAL first, then REVIEW, then OK. Include specific business risk statements for CRITICAL rows.
+Respond ONLY with valid JSON: {"rows": [...]}`;
+
+    case 'gap':
+      return `${base}
+
+Generate the Gap Analysis sheet as JSON. Include all open items: fields with no PS source, required enrichment, missing xRef tables, scope decisions needed.
+Each row: {priority, sap_table_field, description, view, mapping_type, ps_source, gap_detail, owner, action_required, due_date, status}
+Sort: CRITICAL, HIGH, MEDIUM, LOW. Default status OPEN. Due date "Before Mock 1" for CRITICAL/HIGH.
+Respond ONLY with valid JSON: {"rows": [...]}`;
+
+    case 'xref':
+      return `${base}
+
+Generate all XREF sheets as JSON. Based on the object and Deloitte source, identify all cross-reference domains needed.
+For each xRef domain: {sheet_name (XREF_DomainName), db_object (xref.domain_xref), columns: [{legacy_value, legacy_desc, sap_value, sap_desc, notes}]}
+Pre-populate with known values. Add a row with legacy_value="(TBD)" and notes="Run DISTINCT on source to identify additional codes before Mock 1."
+Respond ONLY with valid JSON: {"xref_sheets": [...]}`;
+  }
+}
+
+// ─── EXCEL BUILD ──────────────────────────────────────────────────────────────
+function buildExcel(fields, results) {
+  const wb = XLSX.utils.book_new();
+
+  // COVER
+  try {
+    const d = JSON.parse(results.cover);
+    const rows = [
+      ['McKinsol Consulting Inc.'],
+      ['Source-to-Target Mapping Template  |  S/4HANA Data Migration'],
+      [],
+      ...d.fields.map(([l,v]) => [l, v]),
+      [],
+      ['Version', 'Date', 'Author', 'Change Description'],
+      ...d.version_history.map(r => [r.version, r.date, r.author, r.description])
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:30},{wch:50}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Cover');
+  } catch(e) { appendErrorSheet(wb, 'Cover', e, results.cover); }
+
+  // OBJECT SUMMARY
+  try {
+    const d = JSON.parse(results.objsum);
+    const rows = [
+      [`Conversion Object Summary  |  ${fields.objName}`], [],
+      ['── Identity ──────────────────────────────────────────────────────'],
+      ['Conversion Object Name', d.identity?.name || fields.objName],
+      ['Object Code', d.identity?.code || fields.objCode],
+      ['Workstream', d.identity?.workstream || fields.workstream],
+      ['SAP Migration Object (MYO)', d.identity?.myo_name || fields.myoName],
+      ['S/4HANA Target Tables', d.identity?.target_tables || fields.sapTables],
+      ['OData Service', d.identity?.odata_service || fields.odataService],
+      [],
+      ['── Source System ──────────────────────────────────────────────────'],
+      ['Source System', d.source_system?.system || 'PeopleSoft FSCM 9.2'],
+      ['Source DB Platform', d.source_system?.db_platform || 'Microsoft SQL Server'],
+      ['Primary PS Extract Tables', (d.source_system?.primary_tables || []).join(', ')],
+      ['Related PS Tables', (d.source_system?.related_tables || []).join(', ')],
+      ['Config/Reference PS Tables', (d.source_system?.config_tables || []).join(', ')],
+      ['SetID Scoped?', d.source_system?.setid_scoped || 'Yes'],
+      [],
+      ['── Volume & Scope ─────────────────────────────────────────────────'],
+      ['Estimated Record Count', d.volume_scope?.estimated_records || fields.recCount || 'TBD'],
+      ['Relevancy Filter', d.volume_scope?.relevancy_filter || 'TBD'],
+      ['Date Filter Field', d.volume_scope?.date_filter || 'N/A'],
+      [],
+      ['── PostgreSQL DB Objects ──────────────────────────────────────────'],
+      ['Bronze Table', `bronze.${fields.objName}`],
+      ['Silver Final View', `silver.v_${fields.objName}__silver`],
+      ['Gold Load View', `gold.v_${fields.objName}__load`],
+      ['Relevancy Table', `rel.${fields.objName}_relevancy`],
+      ['Construct Corrections Table', `construct.${fields.objName}_corrections`],
+      ['Construct Constructed Table', `construct.${fields.objName}_constructed`],
+      ['QC Error Results Table', `qc.${fields.objName}__errors`],
+      [],
+      ['── xRef Tables Required ───────────────────────────────────────────'],
+    ];
+    if (d.xref_tables?.length) {
+      rows.push(['Domain', 'DB Object', 'Sheet Name']);
+      d.xref_tables.forEach(x => rows.push([x.domain || '', x.db_object || '', x.sheet_name || '']));
+    }
+    rows.push([], ['── Script Generation Parameters ──────────────────────────────────────']);
+    rows.push(['Source System Tag', d.script_params?.source_tag || 'PS_FSCM_92']);
+    rows.push(['Wave', d.script_params?.wave || fields.wave]);
+    rows.push(['Rule Runner Call', d.script_params?.rule_runner_call || `CALL ctrl.run_rules('${fields.objName}','WAVE-1','Mock-1')`]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:35},{wch:60}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Object Summary');
+  } catch(e) { appendErrorSheet(wb, 'Object Summary', e, results.objsum); }
+
+  // PS SOURCE TABLES
+  try {
+    const d = JSON.parse(results.pssource);
+    const header = ['PS Table','Category','Table Description','Primary Key','SetID Scoped?','Field Name','Data Type','Length','Field Description','FK / Lookup Table','FK / RI Note','Extract / Migration Guidance'];
+    const rows = [header];
+    (d.tables || []).forEach(t => {
+      rows.push([t.table_name, t.category, t.description, t.primary_key, t.setid_scoped, '', '', '', '', '', '', t.extract_guidance || '']);
+      (t.fields || []).forEach(f => {
+        rows.push(['', '', '', '', '', f.field_name, f.data_type, f.length, f.description, f.fk_table || '', f.fk_note || '', '']);
+      });
+      (t.fk_tables || []).forEach(fk => {
+        rows.push([`  FK: ${fk.table_name} (join: ${fk.join_condition})`, fk.category || 'LOOKUP', fk.description, fk.join_condition, '', '', '', '', '', '', '', '']);
+        (fk.fields || []).forEach(f => {
+          rows.push(['', '', '', '', '', f.field_name, f.data_type, f.length, f.description, '', '', '']);
+        });
+      });
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:25},{wch:10},{wch:40},{wch:20},{wch:12},{wch:25},{wch:10},{wch:8},{wch:35},{wch:25},{wch:20},{wch:45}];
+    XLSX.utils.book_append_sheet(wb, ws, 'PS Source Tables');
+  } catch(e) { appendErrorSheet(wb, 'PS Source Tables', e, results.pssource); }
+
+  // FIELD MAPPING
+  try {
+    const d = JSON.parse(results.fieldmap);
+    const header = ['Seq ID','SAP Table','Technical Name','Descriptive Name','Data Type','Len','Key','Req','View / Grouping','CDE Flag','Fit-to-Standard','PS Source Table','PS Source Field (Technical)','PS Source Field (Description)','PS Type','PS Len','RI / FK Table','Mapping Type','Confidence','In Scope','Mapped?','xRef Reqd','xRef DB Object Name','Rule ID','Cleansing / Validation Rule','Bronze Column Name','Build Status','Migration Notes'];
+    const rows = [header];
+    (d.rows || []).forEach(r => {
+      if (r.is_header) {
+        rows.push([r.section_name, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+      } else {
+        rows.push([
+          r.seq_id || '', r.sap_table || '', r.tech_name || '', r.desc_name || '',
+          r.data_type || '', r.length || '', r.key_field || '', r.required || '',
+          r.view_group || '', r.cde_flag || 'N', r.fts_status || 'OK',
+          r.ps_table || '', r.ps_field_tech || '', r.ps_field_desc || '',
+          r.ps_type || '', r.ps_length || '', r.fk_table || '',
+          r.mapping_type || '', r.confidence || '', r.in_scope || 'Y',
+          r.mapped || 'N', r.xref_reqd || 'N', r.xref_object || '',
+          r.rule_id || '', r.cleansing_rule || '', r.bronze_col || '',
+          r.build_status || 'Not Started', r.notes || ''
+        ]);
+      }
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:8},{wch:10},{wch:22},{wch:30},{wch:10},{wch:5},{wch:5},{wch:5},{wch:25},{wch:8},{wch:14},{wch:18},{wch:22},{wch:25},{wch:8},{wch:7},{wch:18},{wch:16},{wch:12},{wch:9},{wch:8},{wch:9},{wch:28},{wch:14},{wch:45},{wch:22},{wch:14},{wch:40}];
+    ws['!freeze'] = {xSplit:3, ySplit:1};
+    XLSX.utils.book_append_sheet(wb, ws, 'Field Mapping');
+  } catch(e) { appendErrorSheet(wb, 'Field Mapping', e, results.fieldmap); }
+
+  // CDE & FTS GAP REVIEW
+  try {
+    const d = JSON.parse(results.cde);
+    const header = ['Priority','SAP Table.Field','Technical Name','Field Description','View / Area','SAP Mandatory?','GAF In Scope?','CDE Flag','CDE Rationale / Risk','Recommendation','Owner','Decision'];
+    const rows = [header];
+    (d.rows || []).forEach(r => {
+      rows.push([r.priority||'', r.sap_table_field||'', r.tech_name||'', r.description||'', r.view_area||'', r.sap_mandatory||'', r.in_scope||'', r.cde_flag||'Y', r.cde_rationale||'', r.recommendation||'', r.owner||'', r.decision||'OPEN']);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:10},{wch:22},{wch:16},{wch:30},{wch:20},{wch:14},{wch:12},{wch:9},{wch:55},{wch:45},{wch:20},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws, 'CDE & FTS Gap Review');
+  } catch(e) { appendErrorSheet(wb, 'CDE & FTS Gap Review', e, results.cde); }
+
+  // GAP ANALYSIS
+  try {
+    const d = JSON.parse(results.gap);
+    const header = ['Priority','SAP Table.Field','Description','View','Mapping Type','PS Source','Gap Detail / Risk','Owner','Action Required','Due Date','Status'];
+    const rows = [header];
+    (d.rows || []).forEach(r => {
+      rows.push([r.priority||'', r.sap_table_field||'', r.description||'', r.view||'', r.mapping_type||'', r.ps_source||'', r.gap_detail||'', r.owner||'', r.action_required||'', r.due_date||'Before Mock 1', r.status||'OPEN']);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:10},{wch:22},{wch:30},{wch:18},{wch:16},{wch:18},{wch:55},{wch:20},{wch:45},{wch:14},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Gap Analysis');
+  } catch(e) { appendErrorSheet(wb, 'Gap Analysis', e, results.gap); }
+
+  // XREF SHEETS
+  try {
+    const d = JSON.parse(results.xref);
+    (d.xref_sheets || []).forEach(xref => {
+      const sheetName = (xref.sheet_name || 'XREF').substring(0, 31);
+      const colHeaders = Object.keys((xref.columns || [{}])[0] || {legacy_value:1,legacy_desc:1,sap_value:1,sap_desc:1,notes:1});
+      const header = colHeaders.map(k => k.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase()));
+      const rows = [
+        [`XREF – ${xref.sheet_name || ''}  |  DB Object: ${xref.db_object || ''}`],
+        [],
+        header,
+        ...(xref.columns || []).map(c => colHeaders.map(k => c[k] || ''))
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = colHeaders.map(() => ({wch: 25}));
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+  } catch(e) { appendErrorSheet(wb, 'XREF_Error', e, results.xref); }
+
+  return wb;
+}
+
+function appendErrorSheet(wb, name, err, raw) {
+  const rows = [['ERROR GENERATING THIS SHEET'], [err.message], [], ['RAW RESPONSE (first 2000 chars):'], [String(raw || '').substring(0, 2000)]];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, name.substring(0,31));
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────────────────────────
+function getFields() {
+  return {
+    objName:     document.getElementById('objName').value.trim(),
+    objCode:     document.getElementById('objCode').value.trim().toUpperCase(),
+    objPascal:   document.getElementById('objPascal').value.trim(),
+    workstream:  selectedWorkstream,
+    myoName:     document.getElementById('myoName').value.trim(),
+    odataService:document.getElementById('odataService').value.trim(),
+    sapTables:   document.getElementById('sapTables').value.trim(),
+    psTables:    document.getElementById('psTables').value.trim(),
+    wave:        document.getElementById('wave').value.trim(),
+    recCount:    document.getElementById('recCount').value.trim(),
+    funcOwner:   document.getElementById('funcOwner').value.trim(),
+  };
+}
+
+function showError(msg) {
+  const p = document.getElementById('errorPanel');
+  if (msg) { p.textContent = '⚠ ' + msg; p.classList.add('show'); }
+  else      { p.textContent = ''; p.classList.remove('show'); }
+}
+
+function setSheetStatus(idx, status, msg) {
+  const rows = document.getElementById('sheetList').children;
+  if (!rows[idx]) return;
+  const row = rows[idx];
+  row.className = 'sheet-row ' + status;
+  const dot = row.querySelector('.sheet-status');
+  dot.className = 'sheet-status ' + status;
+  dot.textContent = status === 'done' ? '✓' : status === 'error' ? '✕' : '';
+  if (msg) row.querySelector('.sheet-msg').textContent = msg;
+  const pct = Math.round(((idx + (status === 'done' ? 1 : 0.5)) / SHEETS.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+// ─── MAIN GENERATE ────────────────────────────────────────────────────────────
+async function generateSTTM() {
+  showError('');
+  if (!validate()) return;
+
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const fields = getFields();
+  const ctx = buildContext(fields);
+  const deloitte = buildDeloitteBlock(fields);
+
+  // Setup UI
+  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('successPanel').classList.remove('show');
+  document.getElementById('progressPanel').classList.add('show');
+  document.getElementById('progressTitle').textContent = `Generating STTM: ${fields.objPascal}`;
+  document.getElementById('progressSpinner').style.display = 'block';
+
+  // Build sheet rows in progress UI
+  const list = document.getElementById('sheetList');
+  list.innerHTML = '';
+  SHEETS.forEach((s, i) => {
+    list.innerHTML += `<div class="sheet-row">
+      <div class="sheet-status pending">${i+1}</div>
+      <div class="sheet-name">${s.label}</div>
+      <div class="sheet-msg">${s.msg}</div>
+    </div>`;
+  });
+
+  const results = {};
+
+  for (let i = 0; i < SHEETS.length; i++) {
+    const sheet = SHEETS[i];
+    setSheetStatus(i, 'active', 'Generating...');
+    try {
+      const prompt = sheetPrompt(sheet.key, ctx, i === 0 ? '' : deloitte);
+      // Use deloitte content only for pssource and fieldmap to save tokens
+      const useDeloitte = ['pssource','fieldmap','objsum','xref'].includes(sheet.key) ? deloitte : '';
+      const fullPrompt = sheetPrompt(sheet.key, ctx, useDeloitte);
+      const maxTok = sheet.key === 'fieldmap' ? 6000 : sheet.key === 'pssource' ? 4000 : 2500;
+      const raw = await callClaude(apiKey, fullPrompt, maxTok);
+
+      // Strip markdown code fences if present
+      const clean = raw.replace(/^```(?:json)?\n?/,'').replace(/\n?```$/,'').trim();
+      results[sheet.key] = clean;
+      setSheetStatus(i, 'done', 'Complete');
+    } catch(e) {
+      results[sheet.key] = '{"error":"' + e.message.replace(/"/g,'\\"') + '"}';
+      setSheetStatus(i, 'error', e.message.substring(0,60));
+    }
+  }
+
+  // Build Excel
+  document.getElementById('progressTitle').textContent = 'Building Excel workbook...';
+  await new Promise(r => setTimeout(r, 200)); // let UI update
+
+  try {
+    const wb = buildExcel(fields, results);
+    generatedWorkbook = wb;
+    const filename = `GAF_Skyline_CONV_${fields.objPascal}_McKinsol_STTM_v1_0.xlsx`;
+
+    document.getElementById('progressSpinner').style.display = 'none';
+    document.getElementById('progressTitle').textContent = 'Generation complete';
+    document.getElementById('successSub').textContent = `File ready: ${filename}`;
+
+    document.getElementById('downloadBtn').onclick = () => {
+      XLSX.writeFile(wb, filename);
+    };
+
+    document.getElementById('successPanel').classList.add('show');
+    document.getElementById('successPanel').scrollIntoView({ behavior: 'smooth' });
+  } catch(e) {
+    showError('Failed to build Excel file: ' + e.message);
+  }
+
+  document.getElementById('generateBtn').disabled = false;
+}
+</script>
+</body>
+</html>
